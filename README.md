@@ -2,6 +2,12 @@
 
 An automated machine learning pipeline that profiles datasets, preprocesses data, selects features, trains and compares multiple models, and generates a professional evaluation report — all without requiring an API key.
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![Tests](https://img.shields.io/badge/Tests-35_passed-brightgreen)
+![scikit--learn](https://img.shields.io/badge/scikit--learn-1.5+-f7931e)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 ## Features
 
 - **Auto-Detection**: Automatically identifies the target column and task type (classification or regression)
