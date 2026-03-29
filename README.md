@@ -2,6 +2,7 @@
 
 An automated machine learning pipeline that profiles datasets, preprocesses data, selects features, trains and compares multiple models, and generates a professional evaluation report — all without requiring an API key.
 
+![CI](https://github.com/eugen-goebel/predictive-analytics-agent/actions/workflows/tests.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![Tests](https://img.shields.io/badge/Tests-35_passed-brightgreen)
 ![scikit--learn](https://img.shields.io/badge/scikit--learn-1.5+-f7931e)
