@@ -27,6 +27,7 @@ from sklearn.ensemble import (
     GradientBoostingClassifier, GradientBoostingRegressor,
 )
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
 
 
 # ---------------------------------------------------------------------------
@@ -75,6 +76,7 @@ class ModelTrainerAgent:
 
     def __init__(self):
         self.best_model = None
+        self.scaler = None
         self.X_train = None
         self.y_train = None
         self.X_test = None
@@ -104,6 +106,11 @@ class ModelTrainerAgent:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
+
+        # --- Step 1b: Scale features (fit on train only to prevent data leakage) ---
+        self.scaler = StandardScaler()
+        self.X_train = self.scaler.fit_transform(self.X_train)
+        self.X_test = self.scaler.transform(self.X_test)
 
         # --- Step 2: Define candidate models ---
         if task_type == "classification":

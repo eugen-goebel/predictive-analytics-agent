@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
 from typing import Literal
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
 
 from .data_profiler import DataProfile
 
@@ -126,11 +126,9 @@ class PreprocessorAgent:
         else:
             y_array = y_series.values.astype(float)
 
-        # --- Step 6: Scale numeric features ---
+        # --- Step 6: Convert to numpy (scaling deferred to ModelTrainer to prevent data leakage) ---
         feature_names = list(X_df.columns)
-        scaler = StandardScaler()
-        X_array = scaler.fit_transform(X_df.values.astype(float))
-        steps.append(f"Scaled {len(feature_names)} features with StandardScaler")
+        X_array = X_df.values.astype(float)
 
         result = PreprocessResult(
             feature_names=feature_names,
