@@ -2,7 +2,12 @@
 
 import numpy as np
 import pytest
-from agents.model_trainer import ModelTrainerAgent, TrainingResult
+from agents.model_trainer import (
+    ModelTrainerAgent,
+    TrainingResult,
+    CLASSIFICATION_PARAM_GRIDS,
+    REGRESSION_PARAM_GRIDS,
+)
 
 
 class TestModelTrainer:
@@ -51,3 +56,56 @@ class TestModelTrainer:
         trainer = ModelTrainerAgent()
         result = trainer.train(X, y, "classification")
         assert result.training_time_seconds > 0
+
+    def test_default_not_tuned(self):
+        X = np.random.randn(50, 3)
+        y = np.random.randint(0, 2, 50)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "classification")
+        assert result.tuned is False
+        assert result.best_params is None
+
+
+class TestHyperparameterTuning:
+    def test_tune_classification(self):
+        X = np.random.randn(80, 4)
+        y = np.random.randint(0, 2, 80)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "classification", tune=True)
+        assert result.tuned is True
+        assert isinstance(result, TrainingResult)
+
+    def test_tune_regression(self):
+        X = np.random.randn(80, 4)
+        y = np.random.randn(80)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "regression", tune=True)
+        assert result.tuned is True
+
+    def test_tune_returns_best_params(self):
+        X = np.random.randn(80, 4)
+        y = np.random.randint(0, 2, 80)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "classification", tune=True)
+        assert result.best_params is not None
+        assert isinstance(result.best_params, dict)
+
+    def test_tune_four_models_compared(self):
+        X = np.random.randn(80, 4)
+        y = np.random.randint(0, 2, 80)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "classification", tune=True)
+        assert len(result.model_scores) == 4
+
+    def test_tune_best_score_matches(self):
+        X = np.random.randn(80, 4)
+        y = np.random.randint(0, 2, 80)
+        trainer = ModelTrainerAgent()
+        result = trainer.train(X, y, "classification", tune=True)
+        scores = [m.score for m in result.model_scores]
+        assert result.best_score == max(scores)
+
+    def test_param_grids_exist(self):
+        assert "Random Forest" in CLASSIFICATION_PARAM_GRIDS
+        assert "Gradient Boosting" in REGRESSION_PARAM_GRIDS
+        assert "n_estimators" in CLASSIFICATION_PARAM_GRIDS["Random Forest"]

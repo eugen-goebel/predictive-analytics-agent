@@ -25,12 +25,13 @@ class MLPipelineOrchestrator:
     def __init__(self, output_dir: str = "output"):
         self.output_dir = output_dir
 
-    def run(self, filepath: str) -> str:
+    def run(self, filepath: str, tune: bool = False) -> str:
         """
         Execute the full 6-phase ML pipeline.
 
         Args:
             filepath: Path to CSV or Excel file
+            tune:     Run hyperparameter tuning with GridSearchCV
 
         Returns:
             Absolute path to the generated DOCX report
@@ -61,9 +62,12 @@ class MLPipelineOrchestrator:
         print(f"      Method: {feature_result.method}")
 
         # Phase 4: Train models
-        print(f"\n[4/6] Training models ...")
+        if tune:
+            print(f"\n[4/6] Training models with hyperparameter tuning ...")
+        else:
+            print(f"\n[4/6] Training models ...")
         trainer = ModelTrainerAgent()
-        training_result = trainer.train(X_selected, y, profile.task_type)
+        training_result = trainer.train(X_selected, y, profile.task_type, tune=tune)
         print(f"      Best: {training_result.best_model_name} "
               f"(score: {training_result.best_score:.4f})")
         print(f"      Time: {training_result.training_time_seconds:.1f}s")
