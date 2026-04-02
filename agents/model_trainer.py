@@ -20,7 +20,7 @@ import time
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import Literal
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import (
     RandomForestClassifier, RandomForestRegressor,
@@ -49,6 +49,52 @@ class TrainingResult(BaseModel):
     task_type: Literal["classification", "regression"]
     model_scores: list[ModelScore]
     training_time_seconds: float = Field(description="Total time for all models")
+    tuned: bool = Field(default=False, description="Whether hyperparameter tuning was applied")
+    best_params: dict | None = Field(default=None, description="Best hyperparameters found by tuning")
+
+
+# ---------------------------------------------------------------------------
+# Hyperparameter grids for GridSearchCV
+# ---------------------------------------------------------------------------
+
+CLASSIFICATION_PARAM_GRIDS = {
+    "Logistic Regression": {
+        "C": [0.01, 0.1, 1, 10],
+        "max_iter": [1000],
+    },
+    "Random Forest": {
+        "n_estimators": [50, 100, 200],
+        "max_depth": [None, 10, 20],
+        "min_samples_split": [2, 5],
+    },
+    "Gradient Boosting": {
+        "n_estimators": [50, 100, 200],
+        "learning_rate": [0.01, 0.1, 0.2],
+        "max_depth": [3, 5],
+    },
+    "K-Nearest Neighbors": {
+        "n_neighbors": [3, 5, 7, 11],
+        "weights": ["uniform", "distance"],
+    },
+}
+
+REGRESSION_PARAM_GRIDS = {
+    "Linear Regression": {},
+    "Random Forest": {
+        "n_estimators": [50, 100, 200],
+        "max_depth": [None, 10, 20],
+        "min_samples_split": [2, 5],
+    },
+    "Gradient Boosting": {
+        "n_estimators": [50, 100, 200],
+        "learning_rate": [0.01, 0.1, 0.2],
+        "max_depth": [3, 5],
+    },
+    "K-Nearest Neighbors": {
+        "n_neighbors": [3, 5, 7, 11],
+        "weights": ["uniform", "distance"],
+    },
+}
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +128,7 @@ class ModelTrainerAgent:
         self.X_test = None
         self.y_test = None
 
-    def train(self, X: np.ndarray, y: np.ndarray, task_type: str) -> TrainingResult:
+    def train(self, X: np.ndarray, y: np.ndarray, task_type: str, tune: bool = False) -> TrainingResult:
         """
         Train multiple models and select the best one.
 
@@ -92,10 +138,14 @@ class ModelTrainerAgent:
           3. Pick the best model by mean CV score
           4. Refit the best model on full training set
 
+        If tune=True, each model is first optimized via GridSearchCV
+        before the comparison step.
+
         Args:
             X:         Feature matrix
             y:         Target array
             task_type: "classification" or "regression"
+            tune:      Run hyperparameter tuning with GridSearchCV
 
         Returns:
             TrainingResult with comparison metrics
@@ -121,6 +171,7 @@ class ModelTrainerAgent:
                 "K-Nearest Neighbors": KNeighborsClassifier(),
             }
             scoring = "accuracy"
+            param_grids = CLASSIFICATION_PARAM_GRIDS
         else:
             candidates = {
                 "Linear Regression": LinearRegression(),
@@ -129,6 +180,14 @@ class ModelTrainerAgent:
                 "K-Nearest Neighbors": KNeighborsRegressor(),
             }
             scoring = "r2"
+            param_grids = REGRESSION_PARAM_GRIDS
+
+        # --- Step 2b: Hyperparameter tuning (optional) ---
+        tuned_params = {}
+        if tune:
+            candidates, tuned_params = self._tune_candidates(
+                candidates, param_grids, scoring,
+            )
 
         # --- Step 3: Train and evaluate each model ---
         model_scores: list[ModelScore] = []
@@ -172,4 +231,34 @@ class ModelTrainerAgent:
             task_type=task_type,
             model_scores=model_scores,
             training_time_seconds=round(total_time, 3),
+            tuned=tune,
+            best_params=tuned_params.get(best_name) if tune else None,
         )
+
+    def _tune_candidates(
+        self,
+        candidates: dict,
+        param_grids: dict,
+        scoring: str,
+    ) -> tuple[dict, dict]:
+        """Run GridSearchCV on each candidate and return tuned models with best params."""
+        tuned = {}
+        best_params = {}
+        cv_folds = min(5, len(self.X_train))
+
+        for name, model in candidates.items():
+            grid = param_grids.get(name, {})
+            if not grid:
+                tuned[name] = model
+                best_params[name] = {}
+                continue
+
+            search = GridSearchCV(
+                model, grid, scoring=scoring,
+                cv=cv_folds, n_jobs=-1, error_score="raise",
+            )
+            search.fit(self.X_train, self.y_train)
+            tuned[name] = search.best_estimator_
+            best_params[name] = search.best_params_
+
+        return tuned, best_params
