@@ -31,6 +31,11 @@ def main():
         default="output",
         help="Output directory for reports (default: output/)",
     )
+    parser.add_argument(
+        "--tune",
+        action="store_true",
+        help="Enable hyperparameter tuning with GridSearchCV",
+    )
 
     args = parser.parse_args()
 
@@ -56,7 +61,7 @@ def main():
     print("=" * 60)
 
     orch = MLPipelineOrchestrator(output_dir=args.output)
-    report_path = orch.run(args.filepath)
+    report_path = orch.run(args.filepath, tune=args.tune)
 
     print("\n" + "=" * 60)
     print(f"  Report ready: {report_path}")
