@@ -36,6 +36,25 @@ def main():
         action="store_true",
         help="Enable hyperparameter tuning with GridSearchCV",
     )
+    parser.add_argument(
+        "--timeseries",
+        type=str,
+        default=None,
+        metavar="COLUMN",
+        help="Run time series forecasting on the specified numeric column",
+    )
+    parser.add_argument(
+        "--horizon",
+        type=int,
+        default=6,
+        help="Number of future steps to forecast (default: 6)",
+    )
+    parser.add_argument(
+        "--lags",
+        type=int,
+        default=12,
+        help="Number of lag features for time series models (default: 12)",
+    )
 
     args = parser.parse_args()
 
@@ -57,15 +76,29 @@ def main():
     print("=" * 60)
     print("  PREDICTIVE ANALYTICS PIPELINE")
     print(f"  Data: {os.path.basename(args.filepath)}")
+    if args.timeseries:
+        print(f"  Mode: Time Series Forecasting (column: {args.timeseries})")
     print(f"  No API key required — runs entirely locally")
     print("=" * 60)
 
     orch = MLPipelineOrchestrator(output_dir=args.output)
-    report_path = orch.run(args.filepath, tune=args.tune)
 
-    print("\n" + "=" * 60)
-    print(f"  Report ready: {report_path}")
-    print("=" * 60)
+    if args.timeseries:
+        result = orch.run_timeseries(
+            args.filepath,
+            target_column=args.timeseries,
+            n_lags=args.lags,
+            horizon=args.horizon,
+        )
+        print("\n" + "=" * 60)
+        print(f"  Best model: {result.best_model_name} (RMSE: {result.best_rmse})")
+        print(f"  Forecast ({result.horizon} steps): {result.forecast_values}")
+        print("=" * 60)
+    else:
+        report_path = orch.run(args.filepath, tune=args.tune)
+        print("\n" + "=" * 60)
+        print(f"  Report ready: {report_path}")
+        print("=" * 60)
 
 
 if __name__ == "__main__":
