@@ -8,11 +8,15 @@ Pipeline:
 import os
 import tempfile
 
+import pandas as pd
+import numpy as np
+
 from agents.data_profiler import DataProfiler
 from agents.preprocessor import PreprocessorAgent
 from agents.feature_engineer import FeatureEngineerAgent
 from agents.model_trainer import ModelTrainerAgent
 from agents.evaluator import EvaluatorAgent
+from agents.timeseries_trainer import TimeSeriesTrainerAgent, ForecastResult
 from utils.report_generator import generate_docx_report
 
 
@@ -102,3 +106,53 @@ class MLPipelineOrchestrator:
         print(f"      Report: {report_path}")
 
         return report_path
+
+    def run_timeseries(
+        self,
+        filepath: str,
+        target_column: str,
+        n_lags: int = 12,
+        horizon: int = 6,
+    ) -> ForecastResult:
+        """
+        Run time series forecasting on a specific column.
+
+        Args:
+            filepath:      Path to CSV or Excel file
+            target_column: Name of the numeric column to forecast
+            n_lags:        Number of lag features
+            horizon:       Steps to forecast ahead
+
+        Returns:
+            ForecastResult with model comparison and forecast values
+        """
+        ext = os.path.splitext(filepath)[1].lower()
+        if ext == ".csv":
+            df = pd.read_csv(filepath)
+        else:
+            df = pd.read_excel(filepath)
+
+        if target_column not in df.columns:
+            raise ValueError(
+                f"Column '{target_column}' not found. "
+                f"Available: {', '.join(df.columns)}"
+            )
+
+        series = pd.to_numeric(df[target_column], errors="coerce").dropna().values
+
+        if len(series) == 0:
+            raise ValueError(f"Column '{target_column}' has no valid numeric values")
+
+        print(f"\n[1/2] Preparing time series ({len(series)} data points) ...")
+        print(f"      Column: {target_column}")
+        print(f"      Lags: {n_lags}, Horizon: {horizon}")
+
+        print(f"\n[2/2] Training forecasting models ...")
+        trainer = TimeSeriesTrainerAgent()
+        result = trainer.train(series, n_lags=n_lags, horizon=horizon)
+
+        print(f"      Best: {result.best_model_name} (RMSE: {result.best_rmse})")
+        for score in result.model_scores:
+            print(f"        {score.name:25s} RMSE={score.rmse:.4f}  MAE={score.mae:.4f}")
+
+        return result
