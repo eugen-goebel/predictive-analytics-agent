@@ -9,6 +9,17 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Screenshots
+
+**Data Analysis** — auto-detected target column, task type, and preprocessing pipeline
+![Data Analysis](docs/screenshots/01-data-analysis.png)
+
+**Model Comparison** — cross-validated accuracy, standard deviation, and training time across 4 models
+![Model Comparison](docs/screenshots/02-model-comparison.png)
+
+**Evaluation Results** — test/train scores, overfitting detection, and accuracy comparison chart
+![Evaluation](docs/screenshots/03-evaluation.png)
+
 ## Features
 
 - **Auto-Detection**: Automatically identifies the target column and task type (classification or regression)
