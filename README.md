@@ -9,6 +9,8 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+> **Try it live:** _(Streamlit Cloud demo URL will be added once deployed.)_
+
 ## Screenshots
 
 **Data Analysis** — auto-detected target column, task type, and preprocessing pipeline
