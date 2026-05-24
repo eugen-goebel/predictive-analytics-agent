@@ -19,6 +19,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pydantic import BaseModel, Field
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     classification_report, confusion_matrix,
@@ -26,6 +27,9 @@ from sklearn.metrics import (
 )
 
 from .model_trainer import TrainingResult
+
+PERMUTATION_TOP_K = 15
+PERMUTATION_N_REPEATS = 10
 
 
 # ---------------------------------------------------------------------------
@@ -151,9 +155,17 @@ class EvaluatorAgent:
             chart = self._chart_residuals(y_test, y_pred, output_dir)
             charts.append(chart)
 
-        # Chart 3: Feature importance (if model supports it)
+        # Chart 3: Native feature importance (only for tree-based models)
         if hasattr(model, "feature_importances_") and len(feature_names) > 0:
             chart = self._chart_feature_importance(model, feature_names, output_dir)
+            if chart:
+                charts.append(chart)
+
+        # Chart 4: Permutation importance (model-agnostic, runs for every model)
+        if len(feature_names) > 0:
+            chart = self._chart_permutation_importance(
+                model, X_test, y_test, feature_names, task_type, output_dir,
+            )
             if chart:
                 charts.append(chart)
 
@@ -277,6 +289,74 @@ class EvaluatorAgent:
 
         return ChartInfo(title="Residual Plot", filename=filename,
                          description="Residuals should be randomly scattered around zero")
+
+    def _chart_permutation_importance(
+        self,
+        model,
+        X_test: np.ndarray,
+        y_test: np.ndarray,
+        feature_names: list[str],
+        task_type: str,
+        output_dir: str,
+    ) -> ChartInfo | None:
+        """Model-agnostic permutation importance — works for any fitted estimator.
+
+        For each feature, sklearn shuffles its column n_repeats times and
+        measures the drop in the chosen score. Larger drop = more important.
+        Unlike ``feature_importances_`` this is defined for every model,
+        including linear models and KNN.
+        """
+        try:
+            scoring = "accuracy" if task_type == "classification" else "r2"
+            n_features = min(len(feature_names), X_test.shape[1])
+            if n_features == 0:
+                return None
+
+            result = permutation_importance(
+                model, X_test[:, :n_features], y_test,
+                n_repeats=PERMUTATION_N_REPEATS,
+                random_state=42,
+                scoring=scoring,
+                n_jobs=1,
+            )
+
+            means = result.importances_mean
+            names = feature_names[:n_features]
+
+            # Top-K by absolute importance, then plot in ascending order
+            top_k = min(PERMUTATION_TOP_K, n_features)
+            top_idx = np.argsort(np.abs(means))[-top_k:]
+            sorted_names = [names[i] for i in top_idx]
+            sorted_means = means[top_idx]
+
+            fig, ax = plt.subplots(figsize=(10, max(4, top_k * 0.4)))
+            fig.patch.set_facecolor(BG_COLOR)
+            ax.set_facecolor(BG_COLOR)
+
+            ax.barh(sorted_names, sorted_means, color=COLORS[2], height=0.6)
+            metric_label = "Accuracy drop" if task_type == "classification" else "R² drop"
+            ax.set_xlabel(f"Permutation importance ({metric_label})", fontsize=11)
+            ax.set_title("Permutation Importance (model-agnostic)", fontsize=14, fontweight="bold", pad=15)
+            ax.axvline(0, color="#888", linewidth=0.8)
+            ax.grid(True, axis="x", alpha=0.3)
+            ax.spines["top"].set_visible(False)
+            ax.spines["right"].set_visible(False)
+
+            plt.tight_layout()
+            filename = "permutation_importance.png"
+            fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
+            plt.close(fig)
+
+            return ChartInfo(
+                title="Permutation Importance",
+                filename=filename,
+                description=(
+                    "Drop in score when each feature is randomly shuffled — "
+                    "works for any model (linear, tree, KNN)."
+                ),
+            )
+        except Exception:
+            return None
 
     def _chart_feature_importance(self, model, feature_names: list[str], output_dir: str) -> ChartInfo | None:
         """Bar chart of feature importances (for tree-based models)."""
