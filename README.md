@@ -1,6 +1,6 @@
 # Predictive Analytics Agent
 
-An automated machine learning pipeline that profiles datasets, preprocesses data, selects features, trains and compares multiple models, and generates a professional evaluation report — all without requiring an API key.
+An automated machine learning pipeline that profiles datasets, preprocesses data, selects features, trains and compares multiple models, and generates a professional evaluation report, all without requiring an API key.
 
 ![CI](https://github.com/eugen-goebel/predictive-analytics-agent/actions/workflows/tests.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
@@ -10,17 +10,17 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 ![License](https://img.shields.io/badge/License-MIT-green)
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit_Cloud-FF4B4B?style=flat)](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/)
 
-> **Try it live:** [eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/) — click *"Use sample dataset (Customer Churn)"* and the full ML pipeline runs in your browser: profiling → preprocessing → training → evaluation, with no API key required.
+> **Try it live:** [eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/). Click *"Use sample dataset (Customer Churn)"* and the full ML pipeline runs in your browser: profiling → preprocessing → training → evaluation, with no API key required.
 
 ## Screenshots
 
-**Data Analysis** — auto-detected target column, task type, and preprocessing pipeline
+**Data Analysis**: auto-detected target column, task type, and preprocessing pipeline
 ![Data Analysis](docs/screenshots/01-data-analysis.png)
 
-**Model Comparison** — cross-validated accuracy, standard deviation, and training time across 4 models
+**Model Comparison**: cross-validated accuracy, standard deviation, and training time across 4 models
 ![Model Comparison](docs/screenshots/02-model-comparison.png)
 
-**Evaluation Results** — test/train scores, overfitting detection, and accuracy comparison chart
+**Evaluation Results**: test/train scores, overfitting detection, and accuracy comparison chart
 ![Evaluation](docs/screenshots/03-evaluation.png)
 
 ## Features
@@ -115,7 +115,7 @@ Includes a customer churn dataset (`data/sample_customers.csv`) with 80 rows and
 | monthly_charges | Monthly charges |
 | total_charges | Total charges |
 | support_calls | Number of support calls |
-| **churn** | **Target** — whether customer churned (0/1) |
+| **churn** | **Target**: whether customer churned (0/1) |
 
 ## Testing
 
@@ -154,12 +154,12 @@ predictive-analytics-agent/
 
 ## Tech Stack
 
-- **scikit-learn** — Machine learning models, preprocessing, evaluation
-- **pandas** — Data manipulation
-- **matplotlib** — Chart generation
-- **Streamlit** — Web interface
-- **python-docx** — Report generation
-- **Pydantic** — Data validation with typed models
+- **scikit-learn**: Machine learning models, preprocessing, evaluation
+- **pandas**: Data manipulation
+- **matplotlib**: Chart generation
+- **Streamlit**: Web interface
+- **python-docx**: Report generation
+- **Pydantic**: Data validation with typed models
 
 ## License
 
