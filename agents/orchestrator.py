@@ -6,17 +6,15 @@ Pipeline:
 """
 
 import os
-import tempfile
 
 import pandas as pd
-import numpy as np
 
 from agents.data_profiler import DataProfiler
-from agents.preprocessor import PreprocessorAgent
+from agents.evaluator import EvaluatorAgent
 from agents.feature_engineer import FeatureEngineerAgent
 from agents.model_trainer import ModelTrainerAgent
-from agents.evaluator import EvaluatorAgent
-from agents.timeseries_trainer import TimeSeriesTrainerAgent, ForecastResult
+from agents.preprocessor import PreprocessorAgent
+from agents.timeseries_trainer import ForecastResult, TimeSeriesTrainerAgent
 from utils.report_generator import generate_docx_report
 
 
@@ -41,7 +39,7 @@ class MLPipelineOrchestrator:
             Absolute path to the generated DOCX report
         """
         # Phase 1: Profile
-        print(f"\n[1/6] Profiling dataset ...")
+        print("\n[1/6] Profiling dataset ...")
         profiler = DataProfiler()
         profile, df = profiler.profile(filepath)
         print(f"      {profile.row_count:,} rows, {profile.column_count} columns")
@@ -49,41 +47,49 @@ class MLPipelineOrchestrator:
         print(f"      Quality: {profile.data_quality_score}/100")
 
         # Phase 2: Preprocess
-        print(f"\n[2/6] Preprocessing data ...")
+        print("\n[2/6] Preprocessing data ...")
         preprocessor = PreprocessorAgent()
         preprocess_result, X, y = preprocessor.preprocess(df, profile)
-        print(f"      {preprocess_result.n_samples} samples, {preprocess_result.n_features} features")
+        print(
+            f"      {preprocess_result.n_samples} samples, {preprocess_result.n_features} features"
+        )
         print(f"      Steps: {len(preprocess_result.steps_applied)}")
 
         # Phase 3: Feature selection
-        print(f"\n[3/6] Selecting best features ...")
+        print("\n[3/6] Selecting best features ...")
         engineer = FeatureEngineerAgent()
         feature_result, X_selected = engineer.select_features(
             X, y, preprocess_result.feature_names, profile.task_type
         )
-        print(f"      Selected {feature_result.selected_feature_count} of "
-              f"{feature_result.original_feature_count} features")
+        print(
+            f"      Selected {feature_result.selected_feature_count} of "
+            f"{feature_result.original_feature_count} features"
+        )
         print(f"      Method: {feature_result.method}")
 
         # Phase 4: Train models
         if tune:
-            print(f"\n[4/6] Training models with hyperparameter tuning ...")
+            print("\n[4/6] Training models with hyperparameter tuning ...")
         else:
-            print(f"\n[4/6] Training models ...")
+            print("\n[4/6] Training models ...")
         trainer = ModelTrainerAgent()
         training_result = trainer.train(X_selected, y, profile.task_type, tune=tune)
-        print(f"      Best: {training_result.best_model_name} "
-              f"(score: {training_result.best_score:.4f})")
+        print(
+            f"      Best: {training_result.best_model_name} "
+            f"(score: {training_result.best_score:.4f})"
+        )
         print(f"      Time: {training_result.training_time_seconds:.1f}s")
 
         # Phase 5: Evaluate
         chart_dir = os.path.join(self.output_dir, "charts")
-        print(f"\n[5/6] Evaluating best model ...")
+        print("\n[5/6] Evaluating best model ...")
         evaluator = EvaluatorAgent()
         eval_result = evaluator.evaluate(
             model=trainer.best_model,
-            X_test=trainer.X_test, y_test=trainer.y_test,
-            X_train=trainer.X_train, y_train=trainer.y_train,
+            X_test=trainer.X_test,
+            y_test=trainer.y_test,
+            X_train=trainer.X_train,
+            y_train=trainer.y_train,
             training_result=training_result,
             feature_names=feature_result.selected_features,
             task_type=profile.task_type,
@@ -94,7 +100,7 @@ class MLPipelineOrchestrator:
         print(f"      Charts: {len(eval_result.charts)}")
 
         # Phase 6: Report
-        print(f"\n[6/6] Generating DOCX report ...")
+        print("\n[6/6] Generating DOCX report ...")
         report_path = generate_docx_report(
             profile=profile,
             preprocess_result=preprocess_result,
@@ -134,8 +140,7 @@ class MLPipelineOrchestrator:
 
         if target_column not in df.columns:
             raise ValueError(
-                f"Column '{target_column}' not found. "
-                f"Available: {', '.join(df.columns)}"
+                f"Column '{target_column}' not found. Available: {', '.join(df.columns)}"
             )
 
         series = pd.to_numeric(df[target_column], errors="coerce").dropna().values
@@ -147,7 +152,7 @@ class MLPipelineOrchestrator:
         print(f"      Column: {target_column}")
         print(f"      Lags: {n_lags}, Horizon: {horizon}")
 
-        print(f"\n[2/2] Training forecasting models ...")
+        print("\n[2/2] Training forecasting models ...")
         trainer = TimeSeriesTrainerAgent()
         result = trainer.train(series, n_lags=n_lags, horizon=horizon)
 

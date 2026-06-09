@@ -1,8 +1,10 @@
 """Tests for DataProfiler."""
 
 import os
+
 import pytest
-from agents.data_profiler import DataProfiler, DataProfile
+
+from agents.data_profiler import DataProfile, DataProfiler
 
 
 @pytest.fixture

@@ -16,21 +16,23 @@ WHY FEATURE SELECTION?
 
 import numpy as np
 from pydantic import BaseModel, Field
-from sklearn.feature_selection import SelectKBest, f_classif, f_regression, VarianceThreshold
-
+from sklearn.feature_selection import SelectKBest, VarianceThreshold, f_classif, f_regression
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class FeatureImportance(BaseModel):
     """Importance score for a single feature."""
+
     name: str
     importance: float = Field(description="Higher = more important for predictions")
 
 
 class FeatureResult(BaseModel):
     """Results of the feature selection process."""
+
     original_feature_count: int
     selected_feature_count: int
     selected_features: list[str]
@@ -42,6 +44,7 @@ class FeatureResult(BaseModel):
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class FeatureEngineerAgent:
     """
@@ -81,8 +84,10 @@ class FeatureEngineerAgent:
         try:
             X_var = vt.fit_transform(X)
             var_mask = vt.get_support()
-            remaining_names = [n for n, keep in zip(feature_names, var_mask) if keep]
-            dropped_by_var = [n for n, keep in zip(feature_names, var_mask) if not keep]
+            remaining_names = [n for n, keep in zip(feature_names, var_mask, strict=False) if keep]
+            dropped_by_var = [
+                n for n, keep in zip(feature_names, var_mask, strict=False) if not keep
+            ]
         except ValueError:
             X_var = X
             remaining_names = list(feature_names)
@@ -109,15 +114,19 @@ class FeatureEngineerAgent:
             X_selected = selector.fit_transform(X_var, y)
             select_mask = selector.get_support()
 
-            selected = [n for n, keep in zip(remaining_names, select_mask) if keep]
-            dropped_by_select = [n for n, keep in zip(remaining_names, select_mask) if not keep]
+            selected = [n for n, keep in zip(remaining_names, select_mask, strict=False) if keep]
+            dropped_by_select = [
+                n for n, keep in zip(remaining_names, select_mask, strict=False) if not keep
+            ]
 
             # Build importances from scores
             scores = selector.scores_
             importances = []
-            for name, score, keep in zip(remaining_names, scores, select_mask):
+            for name, score, keep in zip(remaining_names, scores, select_mask, strict=False):
                 if keep and np.isfinite(score):
-                    importances.append(FeatureImportance(name=name, importance=round(float(score), 4)))
+                    importances.append(
+                        FeatureImportance(name=name, importance=round(float(score), 4))
+                    )
             importances.sort(key=lambda x: x.importance, reverse=True)
 
             method = f"SelectKBest ({score_func.__name__}, k={k})"
@@ -149,7 +158,7 @@ class FeatureEngineerAgent:
             scores, _ = score_func(X, y)
             importances = [
                 FeatureImportance(name=n, importance=round(float(s), 4))
-                for n, s in zip(names, scores)
+                for n, s in zip(names, scores, strict=False)
                 if np.isfinite(s)
             ]
             importances.sort(key=lambda x: x.importance, reverse=True)

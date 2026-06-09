@@ -14,16 +14,24 @@ WHAT IS OVERFITTING?
 """
 
 import os
-import numpy as np
+
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pydantic import BaseModel, Field
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
-    accuracy_score, precision_score, recall_score, f1_score,
-    classification_report, confusion_matrix,
-    mean_absolute_error, mean_squared_error, r2_score,
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
 )
 
 from .model_trainer import TrainingResult
@@ -36,8 +44,10 @@ PERMUTATION_N_REPEATS = 10
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class ChartInfo(BaseModel):
     """Metadata about a generated chart."""
+
     title: str
     filename: str
     description: str
@@ -45,6 +55,7 @@ class ChartInfo(BaseModel):
 
 class EvaluationResult(BaseModel):
     """Complete evaluation results."""
+
     test_score: float
     train_score: float
     is_overfitting: bool = Field(description="True if train-test gap > 10%")
@@ -64,6 +75,7 @@ BG_COLOR = "#FAFAFA"
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class EvaluatorAgent:
     """
@@ -129,9 +141,15 @@ class EvaluatorAgent:
         if task_type == "classification":
             avg = "binary" if len(np.unique(y_test)) == 2 else "weighted"
             metrics["accuracy"] = test_score
-            metrics["precision"] = round(float(precision_score(y_test, y_pred, average=avg, zero_division=0)), 4)
-            metrics["recall"] = round(float(recall_score(y_test, y_pred, average=avg, zero_division=0)), 4)
-            metrics["f1_score"] = round(float(f1_score(y_test, y_pred, average=avg, zero_division=0)), 4)
+            metrics["precision"] = round(
+                float(precision_score(y_test, y_pred, average=avg, zero_division=0)), 4
+            )
+            metrics["recall"] = round(
+                float(recall_score(y_test, y_pred, average=avg, zero_division=0)), 4
+            )
+            metrics["f1_score"] = round(
+                float(f1_score(y_test, y_pred, average=avg, zero_division=0)), 4
+            )
             cls_report = classification_report(y_test, y_pred, zero_division=0)
         else:
             metrics["r2_score"] = test_score
@@ -164,7 +182,12 @@ class EvaluatorAgent:
         # Chart 4: Permutation importance (model-agnostic, runs for every model)
         if len(feature_names) > 0:
             chart = self._chart_permutation_importance(
-                model, X_test, y_test, feature_names, task_type, output_dir,
+                model,
+                X_test,
+                y_test,
+                feature_names,
+                task_type,
+                output_dir,
             )
             if chart:
                 charts.append(chart)
@@ -178,7 +201,9 @@ class EvaluatorAgent:
             metrics=metrics,
         )
 
-    def _chart_model_comparison(self, result: TrainingResult, task_type: str, output_dir: str) -> ChartInfo:
+    def _chart_model_comparison(
+        self, result: TrainingResult, task_type: str, output_dir: str
+    ) -> ChartInfo:
         """Bar chart comparing all models' CV scores."""
         fig, ax = plt.subplots(figsize=(10, 5))
         fig.patch.set_facecolor(BG_COLOR)
@@ -188,7 +213,7 @@ class EvaluatorAgent:
         scores = [m.score for m in result.model_scores]
         stds = [m.cv_std for m in result.model_scores]
 
-        bars = ax.barh(names, scores, xerr=stds, color=COLORS[:len(names)], height=0.5, capsize=5)
+        bars = ax.barh(names, scores, xerr=stds, color=COLORS[: len(names)], height=0.5, capsize=5)
 
         metric_name = "Accuracy" if task_type == "classification" else "R² Score"
         ax.set_xlabel(metric_name, fontsize=11)
@@ -197,17 +222,26 @@ class EvaluatorAgent:
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
-        for bar, score in zip(bars, scores):
-            ax.text(bar.get_width() + 0.005, bar.get_y() + bar.get_height() / 2,
-                    f"{score:.3f}", va="center", fontsize=10, color="#333")
+        for bar, score in zip(bars, scores, strict=False):
+            ax.text(
+                bar.get_width() + 0.005,
+                bar.get_y() + bar.get_height() / 2,
+                f"{score:.3f}",
+                va="center",
+                fontsize=10,
+                color="#333",
+            )
 
         plt.tight_layout()
         filename = "model_comparison.png"
         fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-        return ChartInfo(title="Model Comparison", filename=filename,
-                         description=f"Cross-validation {metric_name.lower()} comparison across all models")
+        return ChartInfo(
+            title="Model Comparison",
+            filename=filename,
+            description=f"Cross-validation {metric_name.lower()} comparison across all models",
+        )
 
     def _chart_confusion_matrix(self, y_true, y_pred, output_dir: str) -> ChartInfo:
         """Heatmap of the confusion matrix."""
@@ -221,8 +255,16 @@ class EvaluatorAgent:
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
                 color = "white" if cm[i, j] > cm.max() / 2 else "black"
-                ax.text(j, i, str(cm[i, j]), ha="center", va="center",
-                        fontsize=14, fontweight="bold", color=color)
+                ax.text(
+                    j,
+                    i,
+                    str(cm[i, j]),
+                    ha="center",
+                    va="center",
+                    fontsize=14,
+                    fontweight="bold",
+                    color=color,
+                )
 
         ax.set_xlabel("Predicted", fontsize=11)
         ax.set_ylabel("Actual", fontsize=11)
@@ -234,8 +276,11 @@ class EvaluatorAgent:
         fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-        return ChartInfo(title="Confusion Matrix", filename=filename,
-                         description="Shows correct vs incorrect predictions for each class")
+        return ChartInfo(
+            title="Confusion Matrix",
+            filename=filename,
+            description="Shows correct vs incorrect predictions for each class",
+        )
 
     def _chart_actual_vs_predicted(self, y_true, y_pred, output_dir: str) -> ChartInfo:
         """Scatter plot of actual vs predicted values."""
@@ -261,8 +306,11 @@ class EvaluatorAgent:
         fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-        return ChartInfo(title="Actual vs Predicted", filename=filename,
-                         description="Points close to the diagonal line indicate accurate predictions")
+        return ChartInfo(
+            title="Actual vs Predicted",
+            filename=filename,
+            description="Points close to the diagonal line indicate accurate predictions",
+        )
 
     def _chart_residuals(self, y_true, y_pred, output_dir: str) -> ChartInfo:
         """Residual plot (errors vs predicted values)."""
@@ -287,8 +335,11 @@ class EvaluatorAgent:
         fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
         plt.close(fig)
 
-        return ChartInfo(title="Residual Plot", filename=filename,
-                         description="Residuals should be randomly scattered around zero")
+        return ChartInfo(
+            title="Residual Plot",
+            filename=filename,
+            description="Residuals should be randomly scattered around zero",
+        )
 
     def _chart_permutation_importance(
         self,
@@ -313,7 +364,9 @@ class EvaluatorAgent:
                 return None
 
             result = permutation_importance(
-                model, X_test[:, :n_features], y_test,
+                model,
+                X_test[:, :n_features],
+                y_test,
                 n_repeats=PERMUTATION_N_REPEATS,
                 random_state=42,
                 scoring=scoring,
@@ -336,7 +389,9 @@ class EvaluatorAgent:
             ax.barh(sorted_names, sorted_means, color=COLORS[2], height=0.6)
             metric_label = "Accuracy drop" if task_type == "classification" else "R² drop"
             ax.set_xlabel(f"Permutation importance ({metric_label})", fontsize=11)
-            ax.set_title("Permutation Importance (model-agnostic)", fontsize=14, fontweight="bold", pad=15)
+            ax.set_title(
+                "Permutation Importance (model-agnostic)", fontsize=14, fontweight="bold", pad=15
+            )
             ax.axvline(0, color="#888", linewidth=0.8)
             ax.grid(True, axis="x", alpha=0.3)
             ax.spines["top"].set_visible(False)
@@ -358,7 +413,9 @@ class EvaluatorAgent:
         except Exception:
             return None
 
-    def _chart_feature_importance(self, model, feature_names: list[str], output_dir: str) -> ChartInfo | None:
+    def _chart_feature_importance(
+        self, model, feature_names: list[str], output_dir: str
+    ) -> ChartInfo | None:
         """Bar chart of feature importances (for tree-based models)."""
         try:
             importances = model.feature_importances_
@@ -386,7 +443,10 @@ class EvaluatorAgent:
             fig.savefig(os.path.join(output_dir, filename), dpi=150, bbox_inches="tight")
             plt.close(fig)
 
-            return ChartInfo(title="Feature Importance", filename=filename,
-                             description="Shows which features have the most impact on predictions")
+            return ChartInfo(
+                title="Feature Importance",
+                filename=filename,
+                description="Shows which features have the most impact on predictions",
+            )
         except Exception:
             return None

@@ -17,25 +17,29 @@ WHAT IS CROSS-VALIDATION?
 """
 
 import time
+from typing import Literal
+
 import numpy as np
 from pydantic import BaseModel, Field
-from typing import Literal
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import (
-    RandomForestClassifier, RandomForestRegressor,
-    GradientBoostingClassifier, GradientBoostingRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
 )
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
-
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class ModelScore(BaseModel):
     """Performance metrics for a single model."""
+
     name: str
     score: float = Field(description="Accuracy (classification) or R² (regression)")
     cv_std: float = Field(description="Standard deviation across CV folds")
@@ -44,13 +48,16 @@ class ModelScore(BaseModel):
 
 class TrainingResult(BaseModel):
     """Results of the model comparison."""
+
     best_model_name: str
     best_score: float
     task_type: Literal["classification", "regression"]
     model_scores: list[ModelScore]
     training_time_seconds: float = Field(description="Total time for all models")
     tuned: bool = Field(default=False, description="Whether hyperparameter tuning was applied")
-    best_params: dict | None = Field(default=None, description="Best hyperparameters found by tuning")
+    best_params: dict | None = Field(
+        default=None, description="Best hyperparameters found by tuning"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +108,7 @@ REGRESSION_PARAM_GRIDS = {
 # Agent
 # ---------------------------------------------------------------------------
 
+
 class ModelTrainerAgent:
     """
     Trains multiple ML models, compares them with cross-validation,
@@ -128,7 +136,9 @@ class ModelTrainerAgent:
         self.X_test = None
         self.y_test = None
 
-    def train(self, X: np.ndarray, y: np.ndarray, task_type: str, tune: bool = False) -> TrainingResult:
+    def train(
+        self, X: np.ndarray, y: np.ndarray, task_type: str, tune: bool = False
+    ) -> TrainingResult:
         """
         Train multiple models and select the best one.
 
@@ -186,7 +196,9 @@ class ModelTrainerAgent:
         tuned_params = {}
         if tune:
             candidates, tuned_params = self._tune_candidates(
-                candidates, param_grids, scoring,
+                candidates,
+                param_grids,
+                scoring,
             )
 
         # --- Step 3: Train and evaluate each model ---
@@ -199,20 +211,25 @@ class ModelTrainerAgent:
             start = time.time()
 
             cv_scores = cross_val_score(
-                model, self.X_train, self.y_train,
-                cv=min(5, len(self.X_train)), scoring=scoring,
+                model,
+                self.X_train,
+                self.y_train,
+                cv=min(5, len(self.X_train)),
+                scoring=scoring,
             )
             elapsed = time.time() - start
 
             mean_score = float(np.mean(cv_scores))
             std_score = float(np.std(cv_scores))
 
-            model_scores.append(ModelScore(
-                name=name,
-                score=round(mean_score, 4),
-                cv_std=round(std_score, 4),
-                training_time=round(elapsed, 3),
-            ))
+            model_scores.append(
+                ModelScore(
+                    name=name,
+                    score=round(mean_score, 4),
+                    cv_std=round(std_score, 4),
+                    training_time=round(elapsed, 3),
+                )
+            )
 
             if mean_score > best_mean_score:
                 best_mean_score = mean_score
@@ -254,8 +271,12 @@ class ModelTrainerAgent:
                 continue
 
             search = GridSearchCV(
-                model, grid, scoring=scoring,
-                cv=cv_folds, n_jobs=-1, error_score="raise",
+                model,
+                grid,
+                scoring=scoring,
+                cv=cv_folds,
+                n_jobs=-1,
+                error_score="raise",
             )
             search.fit(self.X_train, self.y_train)
             tuned[name] = search.best_estimator_

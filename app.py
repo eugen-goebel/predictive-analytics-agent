@@ -16,16 +16,15 @@ To run:
 import os
 import tempfile
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 from agents.data_profiler import DataProfiler
-from agents.preprocessor import PreprocessorAgent
+from agents.evaluator import EvaluatorAgent
 from agents.feature_engineer import FeatureEngineerAgent
 from agents.model_trainer import ModelTrainerAgent
-from agents.evaluator import EvaluatorAgent
+from agents.preprocessor import PreprocessorAgent
 from utils.report_generator import generate_docx_report
-
 
 st.set_page_config(
     page_title="Predictive Analytics Agent",
@@ -62,14 +61,18 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 
 st.title("Predictive Analytics Agent")
-st.caption("Upload a dataset and the ML pipeline automatically trains, compares, and evaluates models.")
+st.caption(
+    "Upload a dataset and the ML pipeline automatically trains, compares, and evaluates models."
+)
 
 # Determine file path
 filepath = None
 if use_sample:
     filepath = sample_path
 elif uploaded:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded.name)[1]) as tmp:
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=os.path.splitext(uploaded.name)[1]
+    ) as tmp:
         tmp.write(uploaded.read())
         filepath = tmp.name
 
@@ -150,8 +153,10 @@ if filepath:
             evaluator = EvaluatorAgent()
             eval_result = evaluator.evaluate(
                 model=trainer.best_model,
-                X_test=trainer.X_test, y_test=trainer.y_test,
-                X_train=trainer.X_train, y_train=trainer.y_train,
+                X_test=trainer.X_test,
+                y_test=trainer.y_test,
+                X_train=trainer.X_train,
+                y_train=trainer.y_train,
                 training_result=training_result,
                 feature_names=feature_result.selected_features,
                 task_type=profile.task_type,
@@ -182,6 +187,7 @@ if filepath:
         output_dir = tempfile.mkdtemp(prefix="ml_report_")
         # Copy charts to output dir
         import shutil
+
         report_chart_dir = os.path.join(output_dir, "charts")
         shutil.copytree(chart_dir, report_chart_dir)
 
