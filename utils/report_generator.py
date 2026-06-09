@@ -7,18 +7,18 @@ charts, and auto-generated conclusions.
 
 import os
 from datetime import date
+
 from docx import Document
-from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
+from docx.shared import Inches, Pt, RGBColor
 
 from agents.data_profiler import DataProfile
-from agents.preprocessor import PreprocessResult
+from agents.evaluator import EvaluationResult
 from agents.feature_engineer import FeatureResult
 from agents.model_trainer import TrainingResult
-from agents.evaluator import EvaluationResult
-
+from agents.preprocessor import PreprocessResult
 
 # ---------------------------------------------------------------------------
 # Colors
@@ -34,6 +34,7 @@ COLOR_HEADER_BG = "1B2A4A"
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _set_cell_bg(cell, color_hex: str):
     """Set background color of a table cell."""
@@ -86,6 +87,7 @@ def _add_table(doc, headers: list[str], rows: list[list[str]], highlight_col: in
 # Main function
 # ---------------------------------------------------------------------------
 
+
 def generate_docx_report(
     profile: DataProfile,
     preprocess_result: PreprocessResult,
@@ -136,7 +138,8 @@ def generate_docx_report(
     # --- 1. Data Profile ---
     _add_heading(doc, "1. Data Profile")
     task_label = profile.task_type.capitalize()
-    _add_table(doc,
+    _add_table(
+        doc,
         ["Property", "Value"],
         [
             ["Dataset", profile.filename],
@@ -181,16 +184,13 @@ def generate_docx_report(
 
     if feature_result.feature_importances:
         imp_rows = [
-            [fi.name, f"{fi.importance:.2f}"]
-            for fi in feature_result.feature_importances[:10]
+            [fi.name, f"{fi.importance:.2f}"] for fi in feature_result.feature_importances[:10]
         ]
         _add_table(doc, ["Feature", "Importance Score"], imp_rows)
     doc.add_paragraph()
 
     if feature_result.dropped_features:
-        doc.add_paragraph(
-            f"Dropped features: {', '.join(feature_result.dropped_features)}"
-        )
+        doc.add_paragraph(f"Dropped features: {', '.join(feature_result.dropped_features)}")
         doc.add_paragraph()
 
     # --- 5. Model Comparison ---
@@ -207,8 +207,7 @@ def generate_docx_report(
     ]
     _add_table(doc, ["Model", metric_name, "Std Dev", "Time"], model_rows)
     doc.add_paragraph(
-        f"Best model: {training_result.best_model_name} "
-        f"(score: {training_result.best_score:.4f})"
+        f"Best model: {training_result.best_model_name} (score: {training_result.best_score:.4f})"
     )
     doc.add_paragraph()
 
@@ -217,10 +216,15 @@ def generate_docx_report(
     eval_rows = [
         ["Test Score", f"{eval_result.test_score:.4f}"],
         ["Train Score", f"{eval_result.train_score:.4f}"],
-        ["Overfitting", "Yes — consider simplifying the model" if eval_result.is_overfitting else "No"],
+        [
+            "Overfitting",
+            "Yes — consider simplifying the model" if eval_result.is_overfitting else "No",
+        ],
     ]
     for key, val in eval_result.metrics.items():
-        eval_rows.append([key.replace("_", " ").title(), f"{val:.4f}" if isinstance(val, float) else str(val)])
+        eval_rows.append(
+            [key.replace("_", " ").title(), f"{val:.4f}" if isinstance(val, float) else str(val)]
+        )
     _add_table(doc, ["Metric", "Value"], eval_rows)
     doc.add_paragraph()
 

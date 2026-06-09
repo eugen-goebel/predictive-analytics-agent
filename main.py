@@ -78,7 +78,7 @@ def main():
     print(f"  Data: {os.path.basename(args.filepath)}")
     if args.timeseries:
         print(f"  Mode: Time Series Forecasting (column: {args.timeseries})")
-    print(f"  No API key required — runs entirely locally")
+    print("  No API key required — runs entirely locally")
     print("=" * 60)
 
     orch = MLPipelineOrchestrator(output_dir=args.output)

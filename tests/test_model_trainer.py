@@ -1,12 +1,12 @@
 """Tests for ModelTrainerAgent."""
 
 import numpy as np
-import pytest
+
 from agents.model_trainer import (
-    ModelTrainerAgent,
-    TrainingResult,
     CLASSIFICATION_PARAM_GRIDS,
     REGRESSION_PARAM_GRIDS,
+    ModelTrainerAgent,
+    TrainingResult,
 )
 
 

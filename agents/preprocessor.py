@@ -16,21 +16,23 @@ WHY SCALING?
   all features on the same playing field.
 """
 
+from typing import Literal
+
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
-from typing import Literal
 from sklearn.preprocessing import LabelEncoder
 
 from .data_profiler import DataProfile
-
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class PreprocessResult(BaseModel):
     """Metadata about what preprocessing was done."""
+
     feature_names: list[str] = Field(description="Names of features after preprocessing")
     target_column: str
     task_type: Literal["classification", "regression"]
@@ -45,6 +47,7 @@ class PreprocessResult(BaseModel):
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class PreprocessorAgent:
     """
@@ -97,14 +100,18 @@ class PreprocessorAgent:
             if n_missing > 0:
                 median_val = X_df[col].median()
                 X_df[col] = X_df[col].fillna(median_val)
-                steps.append(f"Filled {n_missing} missing values in '{col}' with median ({median_val:.2f})")
+                steps.append(
+                    f"Filled {n_missing} missing values in '{col}' with median ({median_val:.2f})"
+                )
 
         for col in cat_cols:
             n_missing = int(X_df[col].isna().sum())
             if n_missing > 0:
                 mode_val = X_df[col].mode().iloc[0] if len(X_df[col].mode()) > 0 else "unknown"
                 X_df[col] = X_df[col].fillna(mode_val)
-                steps.append(f"Filled {n_missing} missing values in '{col}' with mode ('{mode_val}')")
+                steps.append(
+                    f"Filled {n_missing} missing values in '{col}' with mode ('{mode_val}')"
+                )
 
         # --- Step 4: Encode categorical features ---
         cat_cols = X_df.select_dtypes(exclude=[np.number]).columns.tolist()

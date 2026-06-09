@@ -2,7 +2,8 @@
 
 import numpy as np
 import pytest
-from agents.timeseries_trainer import TimeSeriesTrainerAgent, ForecastResult
+
+from agents.timeseries_trainer import ForecastResult, TimeSeriesTrainerAgent
 
 
 @pytest.fixture
