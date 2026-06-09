@@ -1,8 +1,10 @@
 """Tests for PreprocessorAgent."""
 
 import os
+
 import numpy as np
 import pytest
+
 from agents.data_profiler import DataProfiler
 from agents.preprocessor import PreprocessorAgent, PreprocessResult
 

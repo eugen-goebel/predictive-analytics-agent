@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 from agents.feature_engineer import FeatureEngineerAgent, FeatureResult
 
 
@@ -14,7 +15,9 @@ class TestFeatureEngineer:
     def test_select_returns_tuple(self, engineer):
         X = np.random.randn(100, 8)
         y = np.random.randint(0, 2, 100)
-        result, X_sel = engineer.select_features(X, y, [f"f{i}" for i in range(8)], "classification")
+        result, X_sel = engineer.select_features(
+            X, y, [f"f{i}" for i in range(8)], "classification"
+        )
         assert isinstance(result, FeatureResult)
 
     def test_keeps_all_if_few_features(self, engineer):

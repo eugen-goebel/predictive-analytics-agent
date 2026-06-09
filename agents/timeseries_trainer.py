@@ -11,20 +11,20 @@ and trains regression models for multi-step forecasting.
 """
 
 import time
-import numpy as np
-import pandas as pd
-from pydantic import BaseModel, Field
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
+import numpy as np
+from pydantic import BaseModel, Field
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class TimeSeriesModelScore(BaseModel):
     """Performance metrics for a single forecasting model."""
+
     name: str
     rmse: float = Field(description="Root mean squared error on test set")
     mae: float = Field(description="Mean absolute error on test set")
@@ -33,18 +33,22 @@ class TimeSeriesModelScore(BaseModel):
 
 class ForecastResult(BaseModel):
     """Results of time series model training and selection."""
+
     best_model_name: str
     best_rmse: float
     n_lags: int = Field(description="Number of lag features used")
     horizon: int = Field(description="Forecast horizon (steps ahead)")
     model_scores: list[TimeSeriesModelScore]
     training_time_seconds: float
-    forecast_values: list[float] = Field(description="Forecasted values for the next `horizon` steps")
+    forecast_values: list[float] = Field(
+        description="Forecasted values for the next `horizon` steps"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
+
 
 class TimeSeriesTrainerAgent:
     """
@@ -126,12 +130,14 @@ class TimeSeriesTrainerAgent:
 
             elapsed = time.time() - start
 
-            model_scores.append(TimeSeriesModelScore(
-                name=name,
-                rmse=round(rmse, 4),
-                mae=round(mae, 4),
-                training_time=round(elapsed, 3),
-            ))
+            model_scores.append(
+                TimeSeriesModelScore(
+                    name=name,
+                    rmse=round(rmse, 4),
+                    mae=round(mae, 4),
+                    training_time=round(elapsed, 3),
+                )
+            )
 
             if rmse < best_rmse:
                 best_rmse = rmse
@@ -158,11 +164,13 @@ class TimeSeriesTrainerAgent:
             forecast_values=[round(v, 4) for v in forecast],
         )
 
-    def _create_lag_features(self, series: np.ndarray, n_lags: int) -> tuple[np.ndarray, np.ndarray]:
+    def _create_lag_features(
+        self, series: np.ndarray, n_lags: int
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Convert a time series into a supervised learning dataset using lag features."""
         X, y = [], []
         for i in range(n_lags, len(series)):
-            X.append(series[i - n_lags:i])
+            X.append(series[i - n_lags : i])
             y.append(series[i])
         return np.array(X), np.array(y)
 
@@ -171,7 +179,7 @@ class TimeSeriesTrainerAgent:
     ) -> np.ndarray:
         """Generate moving average predictions for the test period."""
         predictions = []
-        data = list(series[:split_idx + window])
+        data = list(series[: split_idx + window])
         for i in range(n_predictions):
             idx = split_idx + window + i
             start = idx - window

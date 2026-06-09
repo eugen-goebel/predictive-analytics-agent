@@ -12,18 +12,20 @@ CLASSIFICATION vs REGRESSION (for beginners):
 """
 
 import os
-import pandas as pd
-import numpy as np
-from pydantic import BaseModel, Field
 from typing import Literal
 
+import numpy as np
+import pandas as pd
+from pydantic import BaseModel, Field
 
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class ColumnProfile(BaseModel):
     """Profile of a single column."""
+
     name: str
     dtype: Literal["numeric", "categorical", "datetime"]
     missing_count: int
@@ -33,6 +35,7 @@ class ColumnProfile(BaseModel):
 
 class NumericStat(BaseModel):
     """Descriptive statistics for a numeric column."""
+
     column: str
     mean: float
     median: float
@@ -44,6 +47,7 @@ class NumericStat(BaseModel):
 
 class DataProfile(BaseModel):
     """Complete profile of a dataset."""
+
     filename: str
     row_count: int
     column_count: int
@@ -169,13 +173,15 @@ class DataProfiler:
                 dtype = "categorical"
 
             samples = df[col].dropna().head(5).astype(str).tolist()
-            profiles.append(ColumnProfile(
-                name=col,
-                dtype=dtype,
-                missing_count=int(df[col].isna().sum()),
-                unique_count=int(df[col].nunique()),
-                sample_values=samples,
-            ))
+            profiles.append(
+                ColumnProfile(
+                    name=col,
+                    dtype=dtype,
+                    missing_count=int(df[col].isna().sum()),
+                    unique_count=int(df[col].nunique()),
+                    sample_values=samples,
+                )
+            )
         return profiles
 
     def _build_numeric_stats(self, df: pd.DataFrame) -> list[NumericStat]:
@@ -183,13 +189,15 @@ class DataProfiler:
         stats = []
         for col in df.select_dtypes(include=[np.number]).columns:
             desc = df[col].describe()
-            stats.append(NumericStat(
-                column=col,
-                mean=round(float(desc["mean"]), 2),
-                median=round(float(df[col].median()), 2),
-                std=round(float(desc["std"]), 2),
-                min=round(float(desc["min"]), 2),
-                max=round(float(desc["max"]), 2),
-                skewness=round(float(df[col].skew()), 2),
-            ))
+            stats.append(
+                NumericStat(
+                    column=col,
+                    mean=round(float(desc["mean"]), 2),
+                    median=round(float(df[col].median()), 2),
+                    std=round(float(desc["std"]), 2),
+                    min=round(float(desc["min"]), 2),
+                    max=round(float(desc["max"]), 2),
+                    skewness=round(float(df[col].skew()), 2),
+                )
+            )
         return stats
