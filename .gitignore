@@ -28,3 +28,8 @@ output/
 *.h5
 *.parquet
 *.npy
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
