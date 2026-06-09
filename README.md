@@ -23,6 +23,26 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 **Evaluation Results**: test/train scores, overfitting detection, and accuracy comparison chart
 ![Evaluation](docs/screenshots/03-evaluation.png)
 
+![CI](https://github.com/eugen-goebel/predictive-analytics-agent/actions/workflows/tests.yml/badge.svg)
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![Tests](https://img.shields.io/badge/Tests-35_passed-brightgreen)
+![scikit--learn](https://img.shields.io/badge/scikit--learn-1.5+-f7931e)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+> **Try it live:** _(Streamlit Cloud demo URL will be added once deployed.)_
+
+## Screenshots
+
+**Data Analysis** — auto-detected target column, task type, and preprocessing pipeline
+![Data Analysis](docs/screenshots/01-data-analysis.png)
+
+**Model Comparison** — cross-validated accuracy, standard deviation, and training time across 4 models
+![Model Comparison](docs/screenshots/02-model-comparison.png)
+
+**Evaluation Results** — test/train scores, overfitting detection, and accuracy comparison chart
+![Evaluation](docs/screenshots/03-evaluation.png)
+
 ## Features
 
 - **Auto-Detection**: Automatically identifies the target column and task type (classification or regression)
