@@ -34,13 +34,13 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 
 ## Screenshots
 
-**Data Analysis** — auto-detected target column, task type, and preprocessing pipeline
+**Data Analysis**: auto-detected target column, task type, and preprocessing pipeline
 ![Data Analysis](docs/screenshots/01-data-analysis.png)
 
-**Model Comparison** — cross-validated accuracy, standard deviation, and training time across 4 models
+**Model Comparison**: cross-validated accuracy, standard deviation, and training time across 4 models
 ![Model Comparison](docs/screenshots/02-model-comparison.png)
 
-**Evaluation Results** — test/train scores, overfitting detection, and accuracy comparison chart
+**Evaluation Results**: test/train scores, overfitting detection, and accuracy comparison chart
 ![Evaluation](docs/screenshots/03-evaluation.png)
 
 ## Features
