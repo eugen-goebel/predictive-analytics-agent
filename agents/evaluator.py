@@ -252,6 +252,14 @@ class EvaluatorAgent:
 
         im = ax.imshow(cm, cmap="Blues", aspect="auto")
 
+        # Integer class ticks (0, 1, ...) instead of matplotlib's default
+        # fractional axis ticks (0.25, 0.50, ...) for a 2x2 grid.
+        classes = np.unique(np.concatenate([np.asarray(y_true), np.asarray(y_pred)]))
+        ax.set_xticks(range(len(classes)))
+        ax.set_yticks(range(len(classes)))
+        ax.set_xticklabels(classes)
+        ax.set_yticklabels(classes)
+
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
                 color = "white" if cm[i, j] > cm.max() / 2 else "black"
