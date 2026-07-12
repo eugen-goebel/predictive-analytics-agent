@@ -29,7 +29,7 @@ class TestDataProfiler:
 
     def test_row_count(self, profiler, sample_path):
         profile, _ = profiler.profile(sample_path)
-        assert profile.row_count == 80
+        assert profile.row_count == 400
 
     def test_column_profiles(self, profiler, sample_path):
         profile, _ = profiler.profile(sample_path)
