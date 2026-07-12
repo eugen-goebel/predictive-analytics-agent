@@ -83,13 +83,12 @@ if filepath:
             profile, df = profiler.profile(filepath)
 
         # --- Data Profile ---
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         col1.metric("Rows", f"{profile.row_count:,}")
         col2.metric("Columns", str(profile.column_count))
-        col3.metric("Task", profile.task_type.capitalize())
-        col4.metric("Quality", f"{profile.data_quality_score}%")
+        col3.metric("Data Quality", f"{profile.data_quality_score}%")
 
-        st.subheader(f"Target: `{profile.target_column}` ({profile.task_type})")
+        st.subheader(f"{profile.task_type.capitalize()} · target `{profile.target_column}`")
 
         # Show data preview
         with st.expander("📊 Data Preview", expanded=False):
