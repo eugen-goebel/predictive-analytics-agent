@@ -218,3 +218,18 @@ if filepath:
 
 else:
     st.info("Upload a CSV/Excel file or load the sample dataset to start the ML pipeline.")
+
+
+# ---------------------------------------------------------------------------
+# Footer
+# ---------------------------------------------------------------------------
+
+st.divider()
+st.markdown(
+    "<div style='text-align:center; color:gray; font-size:0.85rem;'>"
+    "Built by Eugen Goebel &middot; "
+    "<a href='https://github.com/eugen-goebel' target='_blank'>GitHub</a> &middot; "
+    "<a href='https://www.linkedin.com/in/eugen-goebel/' target='_blank'>LinkedIn</a>"
+    "</div>",
+    unsafe_allow_html=True,
+)
