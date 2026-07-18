@@ -143,7 +143,7 @@ Includes a customer churn dataset (`data/sample_customers.csv`) with 80 rows and
 pytest tests/ -v
 ```
 
-35 tests covering all agents and the end-to-end pipeline.
+62 tests covering all agents and the end-to-end pipeline.
 
 ## Project Structure
 
