@@ -43,17 +43,13 @@ with st.sidebar:
     st.divider()
 
     uploaded = st.file_uploader(
-        "Upload dataset",
+        "Upload your own dataset",
         type=["csv", "xlsx"],
         help="Upload a CSV or Excel file with a target column",
     )
+    st.caption("No file? A sample customer-churn dataset runs automatically.")
 
-    # Load sample button
-    sample_path = os.path.join(os.path.dirname(__file__), "data", "sample_customers.csv")
-    use_sample = False
-    if os.path.exists(sample_path):
-        if st.button("📋 Use sample dataset (Customer Churn)"):
-            use_sample = True
+sample_path = os.path.join(os.path.dirname(__file__), "data", "sample_customers.csv")
 
 
 # ---------------------------------------------------------------------------
@@ -65,16 +61,23 @@ st.caption(
     "Upload a dataset and the ML pipeline automatically trains, compares, and evaluates models."
 )
 
-# Determine file path
+# Default to the bundled sample so a first-time visitor sees a full pipeline
+# run without any clicks. An uploaded file takes over as soon as one is given.
 filepath = None
-if use_sample:
-    filepath = sample_path
-elif uploaded:
+uploaded_path = None
+if uploaded:
     with tempfile.NamedTemporaryFile(
         delete=False, suffix=os.path.splitext(uploaded.name)[1]
     ) as tmp:
         tmp.write(uploaded.read())
-        filepath = tmp.name
+        uploaded_path = tmp.name
+    filepath = uploaded_path
+elif os.path.exists(sample_path):
+    filepath = sample_path
+    st.info(
+        "Demo mode — a sample customer-churn dataset is preloaded. "
+        "Upload your own file in the sidebar to analyze it."
+    )
 
 if filepath:
     try:
@@ -212,12 +215,12 @@ if filepath:
         st.error(f"Error: {e}")
 
     finally:
-        # Clean up uploaded temp file
-        if uploaded and filepath and os.path.exists(filepath):
-            os.unlink(filepath)
+        # Clean up the uploaded temp file (never the bundled sample)
+        if uploaded_path and os.path.exists(uploaded_path):
+            os.unlink(uploaded_path)
 
 else:
-    st.info("Upload a CSV/Excel file or load the sample dataset to start the ML pipeline.")
+    st.info("Upload a CSV/Excel file in the sidebar to start the ML pipeline.")
 
 
 # ---------------------------------------------------------------------------

@@ -9,16 +9,24 @@ APP_PATH = os.path.join(REPO_DIR, "app.py")
 
 
 class TestApp:
-    def test_boots_without_error(self):
-        """The app starts and shows the upload prompt before any dataset."""
-        at = AppTest.from_file(APP_PATH, default_timeout=60)
+    def test_boots_and_autoloads_the_sample(self):
+        """A first visit runs the sample pipeline with no clicks.
+
+        Regression: the app used to open on a bare 'upload a file' prompt and
+        hid its results behind a sidebar button a first visitor never found.
+        Now the bundled sample runs on load, so the profile header is present
+        and the demo banner explains it.
+        """
+        at = AppTest.from_file(APP_PATH, default_timeout=300)
         at.run()
 
         assert not at.exception
         assert any("Predictive Analytics Agent" in t.value for t in at.title)
+        assert "Data Quality" in {m.label for m in at.metric}
+        assert any("Demo mode" in i.value for i in at.info)
 
     def test_sample_run_shows_data_quality_and_written_out_task(self):
-        """Running the sample renders the cleaned-up profile header.
+        """The autoloaded sample renders the cleaned-up profile header.
 
         Guards the header fix: the metric is labelled 'Data Quality' (not a
         bare 'Quality' next to model accuracy), and the task type is written
@@ -26,9 +34,6 @@ class TestApp:
         """
         at = AppTest.from_file(APP_PATH, default_timeout=300)
         at.run()
-
-        sample_btn = next(b for b in at.button if "sample dataset" in b.label.lower())
-        sample_btn.click().run()
 
         assert not at.exception
         assert "Data Quality" in {m.label for m in at.metric}
