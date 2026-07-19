@@ -95,7 +95,7 @@ if filepath:
 
         # Show data preview
         with st.expander("📊 Data Preview", expanded=False):
-            st.dataframe(df.head(20), use_container_width=True)
+            st.dataframe(df.head(20), width="stretch")
 
         # Class distribution
         if profile.class_distribution:
@@ -142,7 +142,7 @@ if filepath:
             "Std Dev": [f"±{m.cv_std:.4f}" for m in training_result.model_scores],
             "Time": [f"{m.training_time:.3f}s" for m in training_result.model_scores],
         }
-        st.dataframe(pd.DataFrame(model_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(model_data), width="stretch", hide_index=True)
 
         st.success(
             f"**Best Model: {training_result.best_model_name}** "
@@ -177,7 +177,7 @@ if filepath:
         for chart in eval_result.charts:
             chart_path = os.path.join(chart_dir, chart.filename)
             if os.path.exists(chart_path):
-                st.image(chart_path, caption=chart.description, use_container_width=True)
+                st.image(chart_path, caption=chart.description, width="stretch")
 
         # Classification report
         if eval_result.classification_report:
