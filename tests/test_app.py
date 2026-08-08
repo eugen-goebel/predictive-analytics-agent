@@ -1,11 +1,21 @@
 """Tests for the Streamlit app layer (app.py)."""
 
+import glob
 import os
+import tempfile
 
 from streamlit.testing.v1 import AppTest
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP_PATH = os.path.join(REPO_DIR, "app.py")
+
+
+def _scratch_dirs() -> set[str]:
+    """The pipeline's scratch directories currently sitting in the temp dir."""
+    tmp = tempfile.gettempdir()
+    return set(glob.glob(os.path.join(tmp, "ml_charts_*"))) | set(
+        glob.glob(os.path.join(tmp, "ml_report_*"))
+    )
 
 
 class TestApp:
@@ -38,3 +48,20 @@ class TestApp:
         assert not at.exception
         assert "Data Quality" in {m.label for m in at.metric}
         assert any("Classification" in s.value for s in at.subheader)
+
+    def test_run_leaves_no_scratch_directories_behind(self):
+        """Each pipeline run must clean up after itself.
+
+        The chart and report directories used to be created with mkdtemp and
+        never removed, so every visit left megabytes of PNGs and a DOCX on
+        disk. On the shared deployment that accumulates until the disk is full
+        and the demo stops working for everyone.
+        """
+        before = _scratch_dirs()
+
+        at = AppTest.from_file(APP_PATH, default_timeout=300)
+        at.run()
+        assert not at.exception
+
+        leaked = _scratch_dirs() - before
+        assert not leaked, f"pipeline left scratch directories behind: {sorted(leaked)}"
