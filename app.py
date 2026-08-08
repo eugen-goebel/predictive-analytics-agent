@@ -14,6 +14,7 @@ To run:
 """
 
 import os
+import shutil
 import tempfile
 
 import pandas as pd
@@ -80,6 +81,10 @@ elif os.path.exists(sample_path):
     )
 
 if filepath:
+    # Bound to None up front so the cleanup in `finally` can run even when the
+    # pipeline fails before these directories are created.
+    chart_dir = None
+    output_dir = None
     try:
         with st.spinner("Phase 1/6 — Profiling dataset..."):
             profiler = DataProfiler()
@@ -188,8 +193,6 @@ if filepath:
         st.divider()
         output_dir = tempfile.mkdtemp(prefix="ml_report_")
         # Copy charts to output dir
-        import shutil
-
         report_chart_dir = os.path.join(output_dir, "charts")
         shutil.copytree(chart_dir, report_chart_dir)
 
@@ -218,6 +221,13 @@ if filepath:
         # Clean up the uploaded temp file (never the bundled sample)
         if uploaded_path and os.path.exists(uploaded_path):
             os.unlink(uploaded_path)
+        # And the two scratch directories. The report bytes are already read
+        # into the download button by now, so nothing here is still needed.
+        # Left behind, they accumulate on every run and fill the container's
+        # disk, which takes the demo down for everyone.
+        for scratch in (chart_dir, output_dir):
+            if scratch:
+                shutil.rmtree(scratch, ignore_errors=True)
 
 else:
     st.info("Upload a CSV/Excel file in the sidebar to start the ML pipeline.")
