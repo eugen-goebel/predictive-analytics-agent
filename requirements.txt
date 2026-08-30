@@ -1,3 +1,8 @@
+# Runtime dependencies for the Streamlit Cloud demo.
+# pyproject.toml + uv.lock stay the source of truth for local dev and CI.
+# This is the subset the dashboard (app.py) needs at runtime. openpyxl is
+# included because the profiler reads .xlsx uploads via pandas.read_excel,
+# and python-docx because the orchestrator writes the DOCX report.
 streamlit>=1.62.0
 scikit-learn>=1.9.0
 pandas>=3.0.5
@@ -7,4 +12,3 @@ matplotlib>=3.11.1
 python-docx>=1.2.0
 pydantic>=2.13.4
 openpyxl>=3.1.5
-pytest>=9.1.1
