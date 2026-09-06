@@ -7,7 +7,7 @@ An automated machine learning pipeline that profiles datasets, preprocesses data
 ![scikit--learn](https://img.shields.io/badge/scikit--learn-1.5+-f7931e)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.40+-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Streamlit_Cloud-FF4B4B?style=flat)](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit_Cloud-FF4B4B?style=flat)](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/)
 
 > **Try it live:** [eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app](https://eugen-goebel-predictive-analytics-agent-app-l05zcc.streamlit.app/). Click *"Use sample dataset (Customer Churn)"* and the full ML pipeline runs in your browser: profiling → preprocessing → training → evaluation, with no API key required.
 
